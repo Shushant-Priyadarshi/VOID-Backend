@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+enum UserRole {
+  USER
+  MENTOR
+  ADMIN
+}
+
+model User {
+  id            String   @id @default(cuid())
+
+  email         String   @unique
+  passwordHash  String
+
+  name          String
+
+  bio           String?
+  profileImage  String?
+
+  role          UserRole @default(USER)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+
+  mentorProfile MentorProfile?
+
+  followers     Follow[] @relation("followers")
+  following     Follow[] @relation("following")
+}
+
+model MentorProfile {
+  id              String   @id @default(cuid())
+
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  specialization  String
+  experienceYears Int
+
+  organization    String?
+  consultationFee Int?
+
+  about           String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Post {
+  id            String   @id @default(cuid())
+
+  content       String
+
+  isAnonymous   Boolean  @default(false)
+
+  authorId      String
+  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  comments      Comment[]
+  likes         Like[]
+}
+
+model Comment {
+  id            String   @id @default(cuid())
+
+  content       String
+
+  authorId      String
+  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  postId        String
+  post          Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  parentId      String?
+  parent        Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+
+  replies       Comment[] @relation("CommentReplies")
+
+  deletedAt     DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Like {
+  id            String   @id @default(cuid())
+
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  postId        String
+  post          Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, postId])
+}
+
+model Follow {
+  id            String   @id @default(cuid())
+
+  followerId    String
+  followingId   String
+
+  follower      User @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+
+  following     User @relation("followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
