@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./prisma.utils.js";
 import { SendEmail } from "./sendEmail.utils.js";
+import { EmailTemplate } from "./emailTemplate.js";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -10,34 +11,51 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
-    revokeSessionsOnPasswordReset: true, 
+    revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, token }) => {
       const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
       await SendEmail(
         user.email,
         "Reset your password",
-        `<p>Hi ${user.name},</p>
-         <p>Click the link below to reset your password:</p>
-         <p><a href="${resetUrl}">Reset Password</a></p>
-         <p>If you didn't request this, ignore this email.</p>`
+        EmailTemplate({
+          title: "Reset Password",
+          message:
+            "We received a request to reset your password. Click the button below to continue.",
+          buttonText: "Reset Password",
+          buttonUrl: resetUrl,
+        })
       );
     },
     onPasswordReset: async ({ user }, request) => {
       await SendEmail(
         user.email,
-        "Password Change",
-        `<p>Hi ${user.name},</p>
-         <p>You password has been changed for the email ${user.email}</p>
-         `
+        "Password changed successfully",
+        EmailTemplate({
+          title: "Password Updated",
+          message: `
+      Your password was successfully changed.
+
+      Account: ${user.email}
+
+      If you didn't perform this action, please contact support immediately.
+    `,
+        })
       );
     },
     onExistingUserSignUp: async ({ user }) => {
       await SendEmail(
         user.email,
-        "Sign-up attempt with your email",
-        `<p>Hi ${user.name},</p>
-         <p>Someone tried to create an account using your email address. If this was you, try signing in instead. If not, you can safely ignore this email.</p>
-         `
+        "Account already exists",
+        EmailTemplate({
+          title: "Sign-up Attempt Detected",
+          message: `
+      Someone attempted to create a new account using this email address.
+
+      If this was you, simply sign in instead.
+
+      If this wasn't you, no action is required.
+    `,
+        })
       );
     },
   },
@@ -47,9 +65,13 @@ export const auth = betterAuth({
       await SendEmail(
         user.email,
         "Verify your email",
-        `<p>Hi ${user.name},</p>
-         <p>Click the link below to verify your email:</p>
-         <p><a href="${verifyUrl}">Verify Email</a></p>`
+        EmailTemplate({
+          title: "Verify your email",
+          message:
+            "Welcome to Voice Of Indian Doctors. Please verify your email address to activate your account.",
+          buttonText: "Verify Email",
+          buttonUrl: verifyUrl,
+        })
       );
     },
     sendOnSignUp: true,
@@ -62,4 +84,8 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins: [process.env.FRONTEND_URL as string],
+  session: {
+    expiresIn: 60 * 60 * 24 * 30, // 30 days total session lifetime
+    updateAge: 60 * 60 * 24,
+  },
 });
