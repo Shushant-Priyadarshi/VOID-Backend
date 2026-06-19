@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { toNodeHandler } from "better-auth/node"
 import {auth} from "./utils/auth.js"
+import userRouter from "./modules/user/user.routes.js"
 
 const app = express();
 app.use(helmet())
@@ -13,18 +14,16 @@ app.use(
     credentials: true,
   })
 );
-
-// Mount all better-auth routes — must be BEFORE express.json()
 app.all("/api/auth/*splat", toNodeHandler(auth))
-
 app.use(express.json());
 
 
-//routes
+//routes   
+app.use("/api/v1/users", userRouter)     
 
 
 app.get("/health" , (_,res) =>{
-  res.status(200).json({status:"ok from server"})
+  res.status(200).json({status:"Server Running"})
 })
 
 export {app}
