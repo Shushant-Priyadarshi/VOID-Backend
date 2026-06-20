@@ -1,4 +1,4 @@
-import prisma from "../../utils/prisma.utils.js"
+import prisma from "../../utils/prisma.utils.js";
 
 export const userRepository = {
   findById: async (id: string) => {
@@ -11,18 +11,24 @@ export const userRepository = {
         bio: true,
         profileImage: true,
         role: true,
+        college: true,
+        hospital: true,
         emailVerified: true,
         createdAt: true,
-        // never return passwordHash or sensitive fields
       },
-    })
+    });
   },
 
-  updateById: async (id: string, data: {
-    name?: string
-    bio?: string
-    profileImage?: string
-  }) => {
+  updateById: async (
+    id: string,
+    data: {
+      name?: string;
+      bio?: string;
+      profileImage?: string;
+      college?: string;
+      hospital?: string;
+    }
+  ) => {
     return prisma.user.update({
       where: { id },
       data,
@@ -33,9 +39,28 @@ export const userRepository = {
         bio: true,
         profileImage: true,
         role: true,
+        college: true,
+        hospital: true,
         emailVerified: true,
         createdAt: true,
       },
-    })
+    });
   },
-}
+
+  findPublicById: async (id: string) => {
+    return prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        bio: true,
+        profileImage: true,
+        role: true,
+        college: true,
+        hospital: true,
+        createdAt: true,
+        // deliberately exclude: email, emailVerified
+      },
+    });
+  },
+};

@@ -30,6 +30,10 @@ model User {
 
   role UserRole @default(USER)
 
+   
+  college       String?
+  hospital      String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -71,8 +75,10 @@ model Post {
   id String @id @default(cuid())
 
   content String
+  imageUrl    String?
 
   isAnonymous Boolean @default(false)
+  anonymousLabel String?
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
