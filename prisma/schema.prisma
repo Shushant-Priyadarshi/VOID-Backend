@@ -53,22 +53,39 @@ model User {
   @@map("user")
 }
 
+enum MentorCategory {
+  CARDIOLOGY
+  NEUROLOGY
+  ONCOLOGY
+  PEDIATRICS
+  ORTHOPEDICS
+  DERMATOLOGY
+  PSYCHIATRY
+  GENERAL_MEDICINE
+  SURGERY
+  RADIOLOGY
+  CAREER_GUIDANCE
+  EXAM_PREPARATION
+  OTHER
+}
+
 model MentorProfile {
-  id String @id @default(cuid())
+  id              String         @id @default(cuid())
+  userId          String         @unique
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  category        MentorCategory
   specialization  String
   experienceYears Int
 
   organization    String?
   consultationFee Int?
+  about           String?
 
-  about String?
+  bookingUrl      String?        // cal.com link, added later by mentor
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
 model Post {
