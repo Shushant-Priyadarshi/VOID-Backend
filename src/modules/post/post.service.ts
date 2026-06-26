@@ -4,6 +4,7 @@ import prisma from "../../utils/prisma.utils.js";
 
 interface CreatePostInput {
   authorId: string;
+  title: string;
   content: string;
   isAnonymous: boolean;
   imageUrl?: string;
@@ -34,6 +35,7 @@ export const postService = {
 
     return postRepository.create({
       authorId: input.authorId,
+      title: input.title,
       content: input.content,
       isAnonymous: input.isAnonymous,
       imageUrl: input.isAnonymous ? undefined : input.imageUrl,
@@ -100,10 +102,10 @@ export const postService = {
   },
 
   getPublicPostsByUser: async (viewerId: string | null, authorId: string) => {
-  const posts = await postRepository.findByAuthorId(authorId, 50)
-  const nonAnonymous = posts.filter((p) => !p.isAnonymous)
-  return attachLikeState(viewerId, nonAnonymous)
-},
+    const posts = await postRepository.findByAuthorId(authorId, 50);
+    const nonAnonymous = posts.filter((p) => !p.isAnonymous);
+    return attachLikeState(viewerId, nonAnonymous);
+  },
 };
 
 function buildAnonymousLabel(
@@ -134,6 +136,7 @@ async function attachLikeState<
 
   return posts.map((post) => ({
     id: post.id,
+    title: (post as any).title,
     content: (post as any).content,
     imageUrl: (post as any).imageUrl,
     isAnonymous: post.isAnonymous,

@@ -7,7 +7,12 @@ import { commentService } from "./comment.service.js";
 
 export const postController = {
   createPost: asyncHandler(async (req: Request, res: Response) => {
-    const { content, isAnonymous, imageUrl } = req.body;
+    const { title,content, isAnonymous, imageUrl } = req.body;
+
+
+  if (!title || typeof title !== "string" || !title.trim()) {
+    throw new ApiError(400, "Post title is required")
+  }
 
     if (!content || typeof content !== "string" || !content.trim()) {
       throw new ApiError(400, "Post content is required");
@@ -15,6 +20,7 @@ export const postController = {
 
     const post = await postService.createPost({
       authorId: req.user!.id,
+      title: title.trim(),
       content: content.trim(),
       isAnonymous: !!isAnonymous,
       imageUrl,
