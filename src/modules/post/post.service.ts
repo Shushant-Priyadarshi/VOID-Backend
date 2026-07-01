@@ -1,19 +1,24 @@
 import { postRepository } from "./post.repository.js";
 import { ApiError } from "../../utils/api-error.utils.js";
 import prisma from "../../utils/prisma.utils.js";
+import { deleteFromR2 } from "../../utils/r2.utils.js";
 
 interface CreatePostInput {
   authorId: string;
   title: string;
   content: string;
   isAnonymous: boolean;
-  imageUrl?: string;
+  imageUrls?: string[];
 }
 
 export const postService = {
   createPost: async (input: CreatePostInput) => {
-    if (input.isAnonymous && input.imageUrl) {
-      throw new ApiError(400, "Anonymous posts cannot include an image");
+    if (input.isAnonymous && input.imageUrls && input.imageUrls.length > 0) {
+      throw new ApiError(400, "Anonymous posts cannot include images");
+    }
+
+    if (input.imageUrls && input.imageUrls.length > 4) {
+      throw new ApiError(400, "A post can have a maximum of 4 images");
     }
 
     let anonymousLabel: string | undefined;
@@ -23,9 +28,7 @@ export const postService = {
         where: { id: input.authorId },
         select: { role: true, college: true, hospital: true },
       });
-
       if (!user) throw new ApiError(404, "User not found");
-
       anonymousLabel = buildAnonymousLabel(
         user.role,
         user.college,
@@ -38,11 +41,10 @@ export const postService = {
       title: input.title,
       content: input.content,
       isAnonymous: input.isAnonymous,
-      imageUrl: input.isAnonymous ? undefined : input.imageUrl,
+      imageUrls: input.isAnonymous ? [] : input.imageUrls ?? [],
       anonymousLabel,
     });
   },
-
   getFeed: async (userId: string | null, cursor?: string, limit = 10) => {
     const posts = await postRepository.findFeed({ cursor, limit });
     return attachLikeState(userId, posts);
@@ -82,6 +84,11 @@ export const postService = {
     if (!post) throw new ApiError(404, "Post not found");
     if (post.authorId !== userId)
       throw new ApiError(403, "Not allowed to delete this post");
+
+    // delete images from R2 before removing the DB row
+    if (post.imageUrls && post.imageUrls.length > 0) {
+      await Promise.allSettled(post.imageUrls.map((url) => deleteFromR2(url)));
+    }
 
     await postRepository.delete(postId);
   },
@@ -138,7 +145,7 @@ async function attachLikeState<
     id: post.id,
     title: (post as any).title,
     content: (post as any).content,
-    imageUrl: (post as any).imageUrl,
+    imageUrls: (post as any).imageUrls ?? [],
     isAnonymous: post.isAnonymous,
     createdAt: (post as any).createdAt,
     author: post.isAnonymous ? null : post.author,

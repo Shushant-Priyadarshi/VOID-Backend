@@ -92,7 +92,7 @@ model Post {
   id String @id @default(cuid())
   title       String
   content String
-  imageUrl    String?
+  imageUrls   String[] @default([])
 
   isAnonymous Boolean @default(false)
   anonymousLabel String?

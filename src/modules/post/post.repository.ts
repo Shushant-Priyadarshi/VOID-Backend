@@ -6,7 +6,7 @@ export const postRepository = {
     title:string;
     content: string;
     isAnonymous: boolean;
-    imageUrl?: string;
+    imageUrls?: string[]
     anonymousLabel?: string;
   }) => {
     return prisma.post.create({
@@ -26,7 +26,7 @@ export const postRepository = {
       }),
       orderBy: { createdAt: "desc" },
       include: {
-        author: { select: { id: true, name: true, profileImage: true } },
+        author: { select: { id: true, name: true, profileImage: true, image:true} },
         _count: { select: { likes: true, comments: true } },
       },
     });
@@ -36,7 +36,7 @@ export const postRepository = {
     return prisma.post.findUnique({
       where: { id },
       include: {
-        author: { select: { id: true, name: true, profileImage: true } },
+        author: { select: { id: true, name: true, profileImage: true , image:true} },
         _count: { select: { likes: true, comments: true } },
       },
     });

@@ -7,15 +7,17 @@ import { commentService } from "./comment.service.js";
 
 export const postController = {
   createPost: asyncHandler(async (req: Request, res: Response) => {
-    const { title,content, isAnonymous, imageUrl } = req.body;
+    const { title, content, isAnonymous, imageUrls } = req.body;
 
-
-  if (!title || typeof title !== "string" || !title.trim()) {
-    throw new ApiError(400, "Post title is required")
-  }
-
+    if (!title || typeof title !== "string" || !title.trim()) {
+      throw new ApiError(400, "Post title is required");
+    }
     if (!content || typeof content !== "string" || !content.trim()) {
       throw new ApiError(400, "Post content is required");
+    }
+
+    if (imageUrls && (!Array.isArray(imageUrls) || imageUrls.length > 4)) {
+      throw new ApiError(400, "imageUrls must be an array of at most 4 URLs");
     }
 
     const post = await postService.createPost({
@@ -23,14 +25,14 @@ export const postController = {
       title: title.trim(),
       content: content.trim(),
       isAnonymous: !!isAnonymous,
-      imageUrl,
+      imageUrls,
     });
 
     res
       .status(201)
       .json(new ApiResponse(201, post, "Post created successfully"));
   }),
-
+  
   getFeed: asyncHandler(async (req: Request, res: Response) => {
     const cursor = req.query.cursor as string | undefined;
     const limit = req.query.limit ? Number(req.query.limit) : 10;
@@ -140,11 +142,11 @@ export const postController = {
   }),
 
   getPublicPostsByUser: asyncHandler(async (req: Request, res: Response) => {
-  const authorId = req.params.id as string
-  const viewerId = req.user?.id ?? null
+    const authorId = req.params.id as string;
+    const viewerId = req.user?.id ?? null;
 
-  const posts = await postService.getPublicPostsByUser(viewerId, authorId)
+    const posts = await postService.getPublicPostsByUser(viewerId, authorId);
 
-  res.status(200).json(new ApiResponse(200, posts, "User posts fetched"))
-}),
+    res.status(200).json(new ApiResponse(200, posts, "User posts fetched"));
+  }),
 };
