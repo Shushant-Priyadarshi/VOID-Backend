@@ -29,8 +29,16 @@ export const userController = {
   }),
 
   getPublicProfile: asyncHandler(async (req: Request, res: Response) => {
-  const id = req.params.id as string
-  const user = await userService.getPublicProfile(id)
-  res.status(200).json(new ApiResponse(200, user, "Profile fetched successfully"))
-}),
+    const id = req.params.id as string;
+    const user = await userService.getPublicProfile(id);
+    res
+      .status(200)
+      .json(new ApiResponse(200, user, "Profile fetched successfully"));
+  }),
+
+  searchUsers: asyncHandler(async (req: Request, res: Response) => {
+    const query = (req.query.q as string) ?? "";
+    const users = await userService.searchUsers(query);
+    res.status(200).json(new ApiResponse(200, users, "Users found"));
+  }),
 };

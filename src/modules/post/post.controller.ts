@@ -32,7 +32,7 @@ export const postController = {
       .status(201)
       .json(new ApiResponse(201, post, "Post created successfully"));
   }),
-  
+
   getFeed: asyncHandler(async (req: Request, res: Response) => {
     const cursor = req.query.cursor as string | undefined;
     const limit = req.query.limit ? Number(req.query.limit) : 10;
@@ -59,12 +59,20 @@ export const postController = {
       );
   }),
 
+  // searchPosts: asyncHandler(async (req: Request, res: Response) => {
+  //   const query = (req.query.q as string) ?? "";
+  //   const userId = req.user?.id ?? null;
+
+  //   const posts = await postService.searchPosts(userId, query);
+
+  //   res.status(200).json(new ApiResponse(200, posts, "Search results fetched"));
+  // }),
+
   searchPosts: asyncHandler(async (req: Request, res: Response) => {
     const query = (req.query.q as string) ?? "";
+    const filter = (req.query.filter as "latest" | "top") ?? "latest";
     const userId = req.user?.id ?? null;
-
-    const posts = await postService.searchPosts(userId, query);
-
+    const posts = await postService.searchPosts(userId, query, filter);
     res.status(200).json(new ApiResponse(200, posts, "Search results fetched"));
   }),
 

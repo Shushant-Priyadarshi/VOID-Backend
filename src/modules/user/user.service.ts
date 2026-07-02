@@ -46,4 +46,9 @@ export const userService = {
 
     return updated;
   },
+
+  searchUsers: async (query: string) => {
+    if (!query.trim()) return [];
+    return userRepository.searchUsers(query, 10);
+  },
 };

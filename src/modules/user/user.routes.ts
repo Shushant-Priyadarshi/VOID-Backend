@@ -7,4 +7,5 @@ const router = Router()
 router.get("/me", requireAuth, userController.getProfile)
 router.patch("/update-user-profile", requireAuth, userController.updateProfile)
 router.get("/:id/public", userController.getPublicProfile)
+router.get("/search", userController.searchUsers)
 export default router

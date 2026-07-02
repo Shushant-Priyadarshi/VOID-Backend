@@ -3,10 +3,10 @@ import prisma from "../../utils/prisma.utils.js";
 export const postRepository = {
   create: async (data: {
     authorId: string;
-    title:string;
+    title: string;
     content: string;
     isAnonymous: boolean;
-    imageUrls?: string[]
+    imageUrls?: string[];
     anonymousLabel?: string;
   }) => {
     return prisma.post.create({
@@ -26,7 +26,9 @@ export const postRepository = {
       }),
       orderBy: { createdAt: "desc" },
       include: {
-        author: { select: { id: true, name: true, profileImage: true, image:true} },
+        author: {
+          select: { id: true, name: true, profileImage: true, image: true },
+        },
         _count: { select: { likes: true, comments: true } },
       },
     });
@@ -36,7 +38,9 @@ export const postRepository = {
     return prisma.post.findUnique({
       where: { id },
       include: {
-        author: { select: { id: true, name: true, profileImage: true , image:true} },
+        author: {
+          select: { id: true, name: true, profileImage: true, image: true },
+        },
         _count: { select: { likes: true, comments: true } },
       },
     });
@@ -54,6 +58,30 @@ export const postRepository = {
       orderBy: { createdAt: "desc" },
       include: {
         author: { select: { id: true, name: true, profileImage: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+    });
+  },
+
+  searchWithFilter: async (
+    query: string,
+    filter: "latest" | "top",
+    limit: number
+  ) => {
+    return prisma.post.findMany({
+      where: {
+        OR: [
+          { title: { contains: query, mode: "insensitive" } },
+          { content: { contains: query, mode: "insensitive" } },
+        ],
+      },
+      take: limit,
+      orderBy:
+        filter === "top"
+          ? [{ likes: { _count: "desc" } }, { createdAt: "desc" }]
+          : { createdAt: "desc" },
+      include: {
+        author: { select: { id: true, name: true, profileImage: true,image:true } },
         _count: { select: { likes: true, comments: true } },
       },
     });

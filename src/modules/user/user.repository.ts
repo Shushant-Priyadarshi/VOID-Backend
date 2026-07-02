@@ -63,4 +63,27 @@ export const userRepository = {
       },
     });
   },
+
+  searchUsers: async (query: string, limit: number) => {
+  return prisma.user.findMany({
+    where: {
+      OR: [
+        { name: { contains: query, mode: "insensitive" } },
+        { college: { contains: query, mode: "insensitive" } },
+        { hospital: { contains: query, mode: "insensitive" } },
+      ],
+    },
+    take: limit,
+    select: {
+      id: true,
+      name: true,
+      profileImage: true,
+      role: true,
+      college: true,
+      hospital: true,
+      bio: true,
+      image:true
+    },
+  })
+},
 };

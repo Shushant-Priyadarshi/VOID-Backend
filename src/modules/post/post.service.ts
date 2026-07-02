@@ -58,9 +58,18 @@ export const postService = {
     return withLikeState;
   },
 
-  searchPosts: async (userId: string | null, query: string) => {
+  // searchPosts: async (userId: string | null, query: string) => {
+  //   if (!query.trim()) return [];
+  //   const posts = await postRepository.search(query, 20);
+  //   return attachLikeState(userId, posts);
+  // },
+  searchPosts: async (
+    userId: string | null,
+    query: string,
+    filter: "latest" | "top" = "latest"
+  ) => {
     if (!query.trim()) return [];
-    const posts = await postRepository.search(query, 20);
+    const posts = await postRepository.searchWithFilter(query, filter, 20);
     return attachLikeState(userId, posts);
   },
 
